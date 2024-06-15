@@ -19,6 +19,10 @@ def message(message):
     else:
         click.echo("Error sending message")
 
+def hello():
+    """Prints Hello World"""
+    click.echo("Hello World")
+
 
 if __name__ == "__main__":
     cli(prog_name="CloudySetup")
