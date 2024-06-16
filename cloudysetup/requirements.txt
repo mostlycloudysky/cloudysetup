@@ -2,3 +2,4 @@ fastapi
 uvicorn
 click
 requests
+boto3
