@@ -35,7 +35,7 @@ def monitor_status(request_token):
     click.echo("Checking resource creation status...")
     max_attempts = 10
     wait_time = 2  # Initial wait time in seconds
-    max_wait_time = 60  # Maximum wait time in seconds
+    max_wait_time = 60 * 15  # Maximum wait time in seconds
 
     for attempt in range(max_attempts):
         click.echo(request_token)
@@ -65,6 +65,13 @@ def monitor_status(request_token):
 
     else:
         click.echo("Max attempts reached. Please check the status manually.")
+
+
+@cli.command()
+@click.argument("request_token")
+def monitor(request_token):
+    """Monitor the status of the resource creation using a request token"""
+    monitor_status(request_token)
 
 
 def hello():
