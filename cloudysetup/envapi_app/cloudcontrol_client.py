@@ -10,3 +10,10 @@ def create_resource(type_name: str, desired_state: str):
     )
 
     return response
+
+
+def get_resource_request_status(request_token: str):
+    response = cloudcontrol_client.get_resource_request_status(
+        RequestToken=request_token
+    )
+    return response
