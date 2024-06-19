@@ -27,8 +27,6 @@ def message(message, monitor, profile):
         "aws-secret-key": credentials.secret_key,
         "aws-session-token": credentials.token if credentials.token else "",
     }
-
-    click.echo(f"Header info: {headers}")
     response = requests.post(
         f"{BASE_URL}/message", json={"message": message}, headers=headers
     )

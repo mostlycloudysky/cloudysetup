@@ -29,11 +29,8 @@ def get_message(request: MessageRequest, req: Request):
     if not request.message:
         raise HTTPException(status_code=400, detail="Message is empty")
 
-    print("Hello, I am here")
-
     aws_access_key, aws_secret_key, aws_session_token = extract_aws_credentials(req)
 
-    print("Hello, I am here")
     print(aws_access_key, aws_secret_key, aws_session_token)
 
     resource_type = "AWS::EC2::Instance"
