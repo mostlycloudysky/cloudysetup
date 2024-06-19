@@ -3,6 +3,7 @@ import requests
 import json
 import time
 import random
+import boto3
 
 BASE_URL = "http://127.0.0.1:8000"
 
@@ -15,9 +16,22 @@ def cli():
 @cli.command()
 @click.argument("message")
 @click.option("--monitor", is_flag=True, help="Monitor the resource creation status")
-def message(message, monitor):
+@click.option("--profile", default=None, help="AWS CLI profile to use")
+def message(message, monitor, profile):
     """Send a message to the FastAPI server and get a response"""
-    response = requests.post(f"{BASE_URL}/message", json={"message": message})
+
+    session = boto3.Session(profile_name=profile) if profile else boto3.Session()
+    credentials = session.get_credentials()
+    headers = {
+        "aws-access-key": credentials.access_key,
+        "aws-secret-key": credentials.secret_key,
+        "aws-session-token": credentials.token if credentials.token else "",
+    }
+
+    click.echo(f"Header info: {headers}")
+    response = requests.post(
+        f"{BASE_URL}/message", json={"message": message}, headers=headers
+    )
     if response.status_code == 200:
         click.echo("Request submitted successfully.")
         formatted_response = json.dumps(response.json(), indent=4)
@@ -25,12 +39,12 @@ def message(message, monitor):
         if monitor:
             request_token = response.json()["details"]["ProgressEvent"]["RequestToken"]
             click.echo(f"Monitoring status for request token: {request_token}")
-            monitor_status(request_token)
+            monitor_status(request_token, headers)
     else:
         click.echo(f"Error: {response.status_code} - {response.json().get('detail')}")
 
 
-def monitor_status(request_token):
+def monitor_status(request_token, headers):
     """Monitor the status of the resource creation"""
     click.echo("Checking resource creation status...")
     max_attempts = 10
@@ -40,7 +54,9 @@ def monitor_status(request_token):
     for attempt in range(max_attempts):
         click.echo(request_token)
         response = requests.post(
-            f"{BASE_URL}/resource-status", json={"request_token": request_token}
+            f"{BASE_URL}/resource-status",
+            json={"request_token": request_token},
+            headers=headers,
         )
         if response.status_code == 200:
             details = response.json().get("details", {})
@@ -69,9 +85,19 @@ def monitor_status(request_token):
 
 @cli.command()
 @click.argument("request_token")
-def monitor(request_token):
+@click.option("--profile", default=None, help="AWS CLI profile to use")
+def monitor(request_token, profile):
     """Monitor the status of the resource creation using a request token"""
-    monitor_status(request_token)
+
+    session = boto3.Session(profile_name=profile) if profile else boto3.Session()
+    credentials = session.get_credentials()
+    headers = {
+        "aws-access-key": credentials.access_key,
+        "aws-secret-key": credentials.secret_key,
+        "aws-session-token": credentials.token if credentials.token else "",
+    }
+
+    monitor_status(request_token, headers)
 
 
 def hello():
