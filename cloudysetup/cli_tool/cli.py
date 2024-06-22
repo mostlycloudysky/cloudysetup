@@ -4,8 +4,13 @@ import json
 import time
 import random
 import boto3
+from dotenv import load_dotenv
+import os
 
-BASE_URL = "http://127.0.0.1:8000"
+
+load_dotenv()
+
+BASE_URL = os.getenv("BASE_URL")
 
 
 @click.group()
