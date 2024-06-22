@@ -6,9 +6,11 @@ import random
 import boto3
 from dotenv import load_dotenv
 import os
-
+from rich.console import Console
+from rich.progress import Progress
 
 load_dotenv()
+console = Console()
 
 BASE_URL = os.getenv("BASE_URL")
 
@@ -36,20 +38,24 @@ def message(message, monitor, profile):
         f"{BASE_URL}/message", json={"message": message}, headers=headers
     )
     if response.status_code == 200:
-        click.echo("Request submitted successfully.")
+        console.print("[bold green]Request submitted successfully.[/bold green]")
         formatted_response = json.dumps(response.json(), indent=4)
-        click.echo(formatted_response)
+        console.print_json(formatted_response)
         if monitor:
             request_token = response.json()["details"]["ProgressEvent"]["RequestToken"]
-            click.echo(f"Monitoring status for request token: {request_token}")
+            console.print(
+                f"Monitoring status for request token: [bold]{request_token}[/bold]"
+            )
             monitor_status(request_token, headers)
     else:
-        click.echo(f"Error: {response.status_code} - {response.json().get('detail')}")
+        console.print(
+            f"[bold red]Error: {response.status_code} - {response.json().get('detail')}[/bold red]"
+        )
 
 
 def monitor_status(request_token, headers):
     """Monitor the status of the resource creation"""
-    click.echo("Checking resource creation status...")
+    console.print("[bold blue]Checking resource creation status...[/bold blue]")
     max_attempts = 10
     wait_time = 2  # Initial wait time in seconds
     max_wait_time = 60 * 15  # Maximum wait time in seconds
@@ -65,17 +71,17 @@ def monitor_status(request_token, headers):
             details = response.json().get("details", {})
             status = details.get("ProgressEvent", {}).get("OperationStatus")
             if status in ["SUCCESS", "FAILED"]:
-                click.echo(f"Operation Status: {status}")
+                console.print(f"Operation Status: [bold]{status}[/bold]")
                 formatted_details = json.dumps(details, indent=4)
-                click.echo(formatted_details)
+                console.print_json(formatted_details)
                 break
             else:
-                click.echo(
-                    f"Current Status: {status}. Checking again in {wait_time} seconds..."
+                console.print(
+                    f"Current Status: [yellow]{status}[/yellow]. Checking again in {wait_time} seconds..."
                 )
         else:
-            click.echo(
-                f"Error: {response.status_code} - {response.json().get('detail')}"
+            console.print(
+                f"[bold red]Error: {response.status_code} - {response.json().get('detail')}[/bold red]"
             )
 
         # Exponential backoff with jitter
@@ -83,7 +89,9 @@ def monitor_status(request_token, headers):
         wait_time = min(max_wait_time, wait_time * 2 + random.uniform(0, 1))
 
     else:
-        click.echo("Max attempts reached. Please check the status manually.")
+        console.print(
+            "[bold red]Max attempts reached. Please check the status manually.[/bold red]"
+        )
 
 
 @cli.command()
