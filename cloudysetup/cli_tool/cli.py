@@ -43,23 +43,25 @@ def message(message, monitor, profile):
         response = requests.post(
             f"{BASE_URL}/message", json={"message": message}, headers=headers
         )
+        if response.status_code == 200:
+            console.print("[bold green]Request submitted successfully.[/bold green]")
+            formatted_response = json.dumps(response.json(), indent=4)
+            console.print_json(formatted_response)
+            if monitor:
+                request_token = response.json()["details"]["ProgressEvent"][
+                    "RequestToken"
+                ]
+                console.print(
+                    f"Monitoring status for request token: [bold]{request_token}[/bold]"
+                )
+                monitor_status(request_token, headers)
+        else:
+            console.print(
+                f"[bold red]Error: {response.status_code} - {response.json().get('detail')}[/bold red]"
+            )
     else:
         console.print("[bold red]Request cancelled.[/bold red]")
         return
-    if response.status_code == 200:
-        console.print("[bold green]Request submitted successfully.[/bold green]")
-        formatted_response = json.dumps(response.json(), indent=4)
-        console.print_json(formatted_response)
-        if monitor:
-            request_token = response.json()["details"]["ProgressEvent"]["RequestToken"]
-            console.print(
-                f"Monitoring status for request token: [bold]{request_token}[/bold]"
-            )
-            monitor_status(request_token, headers)
-    else:
-        console.print(
-            f"[bold red]Error: {response.status_code} - {response.json().get('detail')}[/bold red]"
-        )
 
 
 def monitor_status(request_token, headers):
@@ -118,11 +120,6 @@ def monitor(request_token, profile):
     }
 
     monitor_status(request_token, headers)
-
-
-def hello():
-    """Prints Hello World"""
-    click.echo("Hello World")
 
 
 if __name__ == "__main__":
