@@ -34,9 +34,18 @@ def message(message, monitor, profile):
         "aws-secret-key": credentials.secret_key,
         "aws-session-token": credentials.token if credentials.token else "",
     }
-    response = requests.post(
-        f"{BASE_URL}/message", json={"message": message}, headers=headers
-    )
+
+    # TODO - Add progress bar
+    # Refactor this to include a progress bar and handle crud operations
+    console.print("[bold yellow]Do you want to proceed with the request?[/bold yellow]")
+    confirm = click.confirm("Please confirm")
+    if confirm:
+        response = requests.post(
+            f"{BASE_URL}/message", json={"message": message}, headers=headers
+        )
+    else:
+        console.print("[bold red]Request cancelled.[/bold red]")
+        return
     if response.status_code == 200:
         console.print("[bold green]Request submitted successfully.[/bold green]")
         formatted_response = json.dumps(response.json(), indent=4)
