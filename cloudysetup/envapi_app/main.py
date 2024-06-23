@@ -39,11 +39,11 @@ def read_root(request: Request):
 
 @app.post("/message")
 @limiter.limit("3/minute")
-def get_message(request: MessageRequest, req: Request):
-    if not request.message:
+def get_message(msgrequest: MessageRequest, request: Request):
+    if not msgrequest.message:
         raise HTTPException(status_code=400, detail="Message is empty")
 
-    aws_access_key, aws_secret_key, aws_session_token = extract_aws_credentials(req)
+    aws_access_key, aws_secret_key, aws_session_token = extract_aws_credentials(request)
 
     resource_type = "AWS::EC2::Instance"
     configuration = {"InstanceType": "t2.micro", "ImageId": "ami-08a0d1e16fc3f61ea"}
