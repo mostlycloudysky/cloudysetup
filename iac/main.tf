@@ -48,6 +48,12 @@ resource "aws_ecs_cluster" "cloudysetup_cluster" {
   name = "cloudysetup-cluster"
 }
 
+# Add Cloudwatch Logs
+resource "aws_cloudwatch_log_group" "cloudysetup_log_group" {
+  name              = "/ecs/cloudysetup"
+  retention_in_days = 7
+}
+
 resource "aws_ecs_task_definition" "cloudysetup_task" {
   family                = "cloudysetup-task"
   container_definitions = <<-DEFINITION
@@ -69,7 +75,15 @@ resource "aws_ecs_task_definition" "cloudysetup_task" {
           "name": "BASE_URL",
           "value": "https://cloudysetup.cloudysky.link"
         }
-      ]
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "${aws_cloudwatch_log_group.cloudysetup_log_group.name}",
+          "awslogs-region": "${var.region}",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
     }
   ]
   DEFINITION
@@ -79,6 +93,7 @@ resource "aws_ecs_task_definition" "cloudysetup_task" {
   memory                   = 512
   cpu                      = 256
   execution_role_arn       = aws_iam_role.ecs_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 }
 
 data "aws_iam_policy_document" "ecs_role_assumption" {
@@ -91,9 +106,23 @@ data "aws_iam_policy_document" "ecs_role_assumption" {
   }
 }
 
+
+
+
+
 resource "aws_iam_role" "ecs_execution_role" {
   name               = "cloudysetup-ECSTaskExecutionRole"
   assume_role_policy = data.aws_iam_policy_document.ecs_role_assumption.json
+}
+
+resource "aws_iam_role" "ecs_task_role" {
+  name               = "cloudysetup-ECSTaskRole"
+  assume_role_policy = data.aws_iam_policy_document.ecs_role_assumption.json
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attach_cloudwatch" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_execution_role_policy_attach" {
