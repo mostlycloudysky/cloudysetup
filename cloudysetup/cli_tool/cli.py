@@ -21,11 +21,17 @@ def cli():
 
 
 @cli.command()
-@click.argument("message")
+@click.argument("action", required=False)
+@click.option("--interactive", is_flag=True, help="Enter configuration interactively")
+@click.option(
+    "--config-file",
+    type=click.Path(exists=True),
+    help="Path to JSON configuration file",
+)
 @click.option("--monitor", is_flag=True, help="Monitor the resource creation status")
 @click.option("--profile", default=None, help="AWS CLI profile to use")
-def message(message, monitor, profile):
-    """Send a message to the FastAPI server and get a response"""
+def resource(message, monitor, profile):
+    """Handle CRUD operations on resources"""
 
     session = boto3.Session(profile_name=profile) if profile else boto3.Session()
     credentials = session.get_credentials()
