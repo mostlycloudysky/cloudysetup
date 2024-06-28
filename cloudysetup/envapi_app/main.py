@@ -19,7 +19,8 @@ app.add_middleware(SlowAPIMiddleware)
 
 
 class MessageRequest(BaseModel):
-    message: str
+    TypeName: str
+    Properties: dict
 
 
 class ResourceRequestStatus(BaseModel):
@@ -31,22 +32,54 @@ class MessageResponse(BaseModel):
     details: dict
 
 
+class TemplateRequest(BaseModel):
+    prompt: str
+    properties: dict = {}
+
+
+class TemplateResponse(BaseModel):
+    request_data: dict
+    suggestions: list = []
+
+
 @app.get("/")
 @limiter.limit("3/minute")
 def read_root(request: Request):
     return {"message:": "Hello World"}
 
 
+@app.post("/generate-template", response_model=TemplateResponse)
+async def generate_template(template: TemplateRequest, request: Request):
+
+    print("A new request came in my way....")
+    try:
+        # Mocking the template generation
+        generated_template = {
+            "TypeName": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType": "t2.micro",
+                "ImageId": "ami-08a0d1e16fc3f61ea",
+            },
+        }
+        suggestions = [
+            "Set InstanceType to t2.small for more capacity",
+            "Change the region",
+        ]
+        return {"request_data": generated_template, "suggestions": suggestions}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.post("/message")
 @limiter.limit("3/minute")
 def get_message(msgrequest: MessageRequest, request: Request):
-    if not msgrequest.message:
-        raise HTTPException(status_code=400, detail="Message is empty")
+    if not msgrequest.TypeName or not msgrequest.Properties:
+        raise HTTPException(status_code=400, detail="Request is invalid..")
 
     aws_access_key, aws_secret_key, aws_session_token = extract_aws_credentials(request)
 
-    resource_type = "AWS::EC2::Instance"
-    configuration = {"InstanceType": "t2.micro", "ImageId": "ami-08a0d1e16fc3f61ea"}
+    resource_type = msgrequest.TypeName
+    configuration = msgrequest.Properties
 
     try:
         response = create_resource(
