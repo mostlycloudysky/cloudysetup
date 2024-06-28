@@ -30,8 +30,13 @@ def cli():
 )
 @click.option("--monitor", is_flag=True, help="Monitor the resource creation status")
 @click.option("--profile", default=None, help="AWS CLI profile to use")
-def resource(message, monitor, profile):
+def resource(action, monitor, profile, interactive, config_file):
     """Handle CRUD operations on resources"""
+
+    if not action:
+        action = click.prompt(
+            "Enter the action to perform (e.g. create an S3 bucket, create a DynamoDB table)"
+        )
 
     session = boto3.Session(profile_name=profile) if profile else boto3.Session()
     credentials = session.get_credentials()
@@ -41,13 +46,43 @@ def resource(message, monitor, profile):
         "aws-session-token": credentials.token if credentials.token else "",
     }
 
+    # Generate initial configuration from bedrock model
+    data = {
+        "prompt": f"{action.capitalize()} and generate a configuration accepted in AWS cloud core API in JSON format "
+    }
+    # Add call to the /generate-template path
+    response = requests.post(
+        f"{BASE_URL}/generate-template", json=data, headers=headers
+    )
+    if response.status_code == 200:
+        console.print("[bold green]Configuration generated successfully.[/bold green]")
+        generated_template = response.json()["request_data"]
+        suggestions = response.json().get("suggestions", [])
+        if suggestions:
+            console.print("[bold yellow]Suggestions:[/bold yellow]")
+            for suggestion in suggestions:
+                console.print(f"  - {suggestion}")
+
+        if interactive:
+            for key, value in generated_template["Properties"].items():
+                user_input = click.prompt(f"{key} [{value}]", default=value)
+                generated_template["Properties"][key] = user_input
+
+        # elif condition to accept config file as input as well
+    else:
+        console.print(
+            f"[bold red]Error: {response.status_code} - {response.json().get('detail')}[/bold red]"
+        )
+        return
+
     # TODO - Add progress bar
     # Refactor this to include a progress bar and handle crud operations
+    print("Action to submit", generated_template)
     console.print("[bold yellow]Do you want to proceed with the request?[/bold yellow]")
     confirm = click.confirm("Please confirm")
     if confirm:
         response = requests.post(
-            f"{BASE_URL}/message", json={"message": message}, headers=headers
+            f"{BASE_URL}/message", json=generated_template, headers=headers
         )
         if response.status_code == 200:
             console.print("[bold green]Request submitted successfully.[/bold green]")
