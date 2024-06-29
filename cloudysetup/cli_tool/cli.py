@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import os
 from rich.console import Console
 from rich.progress import Progress
+from rich.table import Table
 
 load_dotenv()
 console = Console()
@@ -77,7 +78,6 @@ def resource(action, monitor, profile, interactive, config_file):
 
     # TODO - Add progress bar
     # Refactor this to include a progress bar and handle crud operations
-    print("Action to submit", generated_template)
     console.print("[bold yellow]Do you want to proceed with the request?[/bold yellow]")
     confirm = click.confirm("Please confirm")
     if confirm:
@@ -124,8 +124,9 @@ def monitor_status(request_token, headers):
             status = details.get("ProgressEvent", {}).get("OperationStatus")
             if status in ["SUCCESS", "FAILED"]:
                 console.print(f"Operation Status: [bold]{status}[/bold]")
-                formatted_details = json.dumps(details, indent=4)
-                console.print_json(formatted_details)
+                # formatted_details = json.dumps(details, indent=4)
+                # console.print_json(formatted_details)
+                display_resource_details(details)
                 break
             else:
                 console.print(
@@ -144,6 +145,22 @@ def monitor_status(request_token, headers):
         console.print(
             "[bold red]Max attempts reached. Please check the status manually.[/bold red]"
         )
+
+
+def display_resource_details(details):
+
+    table = Table(title="Resource Details")
+    table.add_column("Resource ID", justify="left", style="cyan", no_wrap=True)
+    table.add_column("Resource Type", style="magenta")
+    table.add_column("Status", style="green")
+
+    progress_event = details.get("ProgressEvent", {})
+    resource_id = progress_event.get("Identifier", "N/A")
+    resource_type = progress_event.get("TypeName", "N/A")
+    status = progress_event.get("OperationStatus", "N/A")
+
+    table.add_row(resource_id, resource_type, status)
+    console.print(table)
 
 
 @cli.command()

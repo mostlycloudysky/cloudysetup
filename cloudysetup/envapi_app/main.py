@@ -55,15 +55,15 @@ async def generate_template(template: TemplateRequest, request: Request):
     try:
         # Mocking the template generation
         generated_template = {
-            "TypeName": "AWS::EC2::Instance",
+            "TypeName": "AWS::SNS::Topic",
             "Properties": {
-                "InstanceType": "t2.micro",
-                "ImageId": "ami-08a0d1e16fc3f61ea",
+                "TopicName": "MySampleTopic",
+                "DisplayName": "My Sample SNS Topic",
             },
         }
         suggestions = [
-            "Set InstanceType to t2.small for more capacity",
-            "Change the region",
+            "Change the TopicName to a unique value",
+            "Set DisplayName to something more descriptive",
         ]
         return {"request_data": generated_template, "suggestions": suggestions}
     except Exception as e:
