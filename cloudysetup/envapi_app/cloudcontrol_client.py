@@ -1,5 +1,6 @@
 import boto3
 import json
+import os
 
 
 def create_resource(
@@ -58,7 +59,13 @@ def get_resource_request_status(
 
 
 def invoke_bedrock_model(prompt: str):
-    bedrock = boto3.client(service_name="bedrock-runtime")
+
+    if "ECS_CONTAINER_METADATA_URI" in os.environ:
+        bedrock = boto3.client(service_name="bedrock-runtime")
+    else:
+        session = boto3.Session()
+        bedrock = session.client(service_name="bedrock-runtime")
+
     prompt_body = json.dumps(
         {
             "prompt": prompt,
@@ -70,7 +77,7 @@ def invoke_bedrock_model(prompt: str):
         }
     )
 
-    MODEL_ID = "bedrock-1.0"
+    MODEL_ID = "ai21.j2-ultra-v1"
     response = bedrock.invoke_model(
         body=prompt_body,
         modelId=MODEL_ID,
