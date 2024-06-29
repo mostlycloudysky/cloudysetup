@@ -55,3 +55,28 @@ def get_resource_request_status(
         RequestToken=request_token
     )
     return response
+
+
+def invoke_bedrock_model(prompt: str):
+    bedrock = boto3.client(service_name="bedrock-runtime")
+    prompt_body = json.dumps(
+        {
+            "prompt": prompt,
+            "max_tokens": 1500,
+            "temperature": 0.7,
+            "top_p": 1.0,
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0,
+        }
+    )
+
+    MODEL_ID = "bedrock-1.0"
+    response = bedrock.invoke_model(
+        body=prompt_body,
+        modelId=MODEL_ID,
+        accept="application/json",
+        contentType="application/json",
+    )
+
+    print("response: ", response)
+    return response
