@@ -71,7 +71,7 @@ async def generate_template(template: TemplateRequest, request: Request):
             "Change the TopicName to a unique value",
             "Set DisplayName to something more descriptive",
         ]
-        return {"request_data": generated_template, "suggestions": suggestions}
+        return {"request_data": bedrock_response, "suggestions": suggestions}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

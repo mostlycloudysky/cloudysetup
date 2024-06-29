@@ -69,11 +69,8 @@ def invoke_bedrock_model(prompt: str):
     prompt_body = json.dumps(
         {
             "prompt": prompt,
-            "max_tokens": 1500,
+            "maxTokens": 512,
             "temperature": 0.7,
-            "top_p": 1.0,
-            "frequency_penalty": 0.0,
-            "presence_penalty": 0.0,
         }
     )
 
@@ -85,5 +82,6 @@ def invoke_bedrock_model(prompt: str):
         contentType="application/json",
     )
 
-    print("response: ", response)
-    return response
+    model_response = json.loads(response["body"].read())
+    response_text = model_response["completions"][0]["data"]["text"]
+    return json.loads(response_text)

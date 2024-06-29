@@ -49,7 +49,7 @@ def resource(action, monitor, profile, interactive, config_file):
 
     # Generate initial configuration from bedrock model
     data = {
-        "prompt": f"{action.capitalize()} and generate a configuration accepted in AWS cloud core API in JSON format "
+        "prompt": f"{action.capitalize()} and generate specific base resource configuration i.e resource type and properties accepted in AWS cloud control API in JSON format only"
     }
     # Add call to the /generate-template path
     response = requests.post(
