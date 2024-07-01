@@ -9,16 +9,99 @@ import os
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
+from datetime import datetime
 
 load_dotenv()
 console = Console()
 
+
 BASE_URL = os.getenv("BASE_URL")
+
+
+def find_project_root():
+    current_dir = os.path.abspath(os.getcwd())
+    while True:
+        if os.path.exists(os.path.join(current_dir, ".git")):
+            return current_dir
+        parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+        if current_dir == parent_dir:
+            return os.getcwd()
+        current_dir = parent_dir
+
+
+# ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = find_project_root()
+RESOURCES_DIR = os.path.join(ROOT_DIR, "resources")
+STATE_FILE = os.path.join(os.path.expanduser("~"), ".cloudysetup_state.json")
 
 
 @click.group()
 def cli():
     pass
+
+
+@cli.command()
+@click.argument("action", required=False)
+@click.option(
+    "--config-file",
+    type=click.Path(exists=True),
+    help="Path to JSON configuration file",
+)
+@click.option("--profile", default=None, help="AWS CLI profile to use")
+def generate(action, profile, config_file):
+    """Generate resource configuration and save it to a file."""
+
+    if not action:
+        action = click.prompt(
+            "Enter the action to perform (e.g. create an S3 bucket, create a DynamoDB table)"
+        )
+
+    session = boto3.Session(profile_name=profile) if profile else boto3.Session()
+    credentials = session.get_credentials()
+    headers = {
+        "aws-access-key": credentials.access_key,
+        "aws-secret-key": credentials.secret_key,
+        "aws-session-token": credentials.token if credentials.token else "",
+    }
+
+    # Generate initial configuration from bedrock model
+    # Create an SNS topic resource configuration in JSON format that is compatible with AWS Cloud Control API. The JSON should include the TypeName and Properties fields.
+    data = {
+        "prompt": f"{action.capitalize()} and generate resource configuration in JSON format that is compatible with AWS Cloud Control API only. The JSON should include the TypeName and Properties fields."
+    }
+    response = requests.post(
+        f"{BASE_URL}/generate-template", json=data, headers=headers
+    )
+    if response.status_code == 200:
+        console.print("[bold green]Configuration generated successfully.[/bold green]")
+        generated_template = response.json()["request_data"]
+        suggestions = response.json().get("suggestions", [])
+        if suggestions:
+            console.print("[bold yellow]Suggestions:[/bold yellow]")
+            for suggestion in suggestions:
+                console.print(f"  - {suggestion}")
+
+        if not os.path.exists(RESOURCES_DIR):
+            os.makedirs(RESOURCES_DIR)
+
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        description = action.replace(" ", "_").lower()
+
+        unique_filename = os.path.join(RESOURCES_DIR, f"{description}_{timestamp}.json")
+        with open(unique_filename, "w") as f:
+            json.dump(generated_template, f, indent=4)
+
+        console.print(
+            f"[bold blue]Configuration saved to {os.path.relpath(unique_filename)}[/bold blue]"
+        )
+
+    else:
+        console.print(
+            f"[bold red]Error: {response.status_code} - {response.json().get('detail')}[/bold red]"
+        )
+
+
+# Refactor this code..
 
 
 @cli.command()
