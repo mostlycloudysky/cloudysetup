@@ -49,12 +49,15 @@ def resource(action, monitor, profile, interactive, config_file):
 
     # Generate initial configuration from bedrock model
     data = {
-        "prompt": f"{action.capitalize()} and generate specific base resource configuration i.e resource type and properties accepted in AWS cloud control API in JSON format only"
+        # "prompt": f"{action.capitalize()} configuration in JSON format that is compatible with AWS Cloud Control API. The JSON should include the TypeName and Properties fields"
+        "prompt": "Create an SNS topic resource configuration in JSON format that is compatible with AWS Cloud Control API. The JSON should include the TypeName and Properties fields."
     }
     # Add call to the /generate-template path
     response = requests.post(
         f"{BASE_URL}/generate-template", json=data, headers=headers
     )
+    formatted_response = json.dumps(response.json(), indent=4)
+    console.print_json(formatted_response)
     if response.status_code == 200:
         console.print("[bold green]Configuration generated successfully.[/bold green]")
         generated_template = response.json()["request_data"]

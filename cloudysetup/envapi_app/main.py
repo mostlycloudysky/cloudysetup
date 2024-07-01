@@ -58,15 +58,14 @@ async def generate_template(template: TemplateRequest, request: Request):
     try:
         # Invoke bedrock model
         bedrock_response = invoke_bedrock_model(template.prompt)
-        print(bedrock_response)
         # Mocking the template generation
-        generated_template = {
-            "TypeName": "AWS::SNS::Topic",
-            "Properties": {
-                "TopicName": "MySampleTopic",
-                "DisplayName": "My Sample SNS Topic",
-            },
-        }
+        # generated_template = {
+        #     "TypeName": "AWS::SNS::Topic",
+        #     "Properties": {
+        #         "TopicName": "MySampleTopic",
+        #         "DisplayName": "My Sample SNS Topic",
+        #     },
+        # }
         suggestions = [
             "Change the TopicName to a unique value",
             "Set DisplayName to something more descriptive",
@@ -86,6 +85,9 @@ def get_message(msgrequest: MessageRequest, request: Request):
 
     resource_type = msgrequest.TypeName
     configuration = msgrequest.Properties
+
+    print(f"Resource Type: {resource_type}")
+    print(f"Configuration: {configuration}")
 
     try:
         response = create_resource(
