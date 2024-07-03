@@ -7,7 +7,7 @@ import boto3
 from dotenv import load_dotenv
 import os
 from rich.console import Console
-from rich.progress import Progress
+from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn, TextColumn
 from rich.table import Table
 from datetime import datetime
 
@@ -69,9 +69,19 @@ def generate(action, profile, config_file):
     data = {
         "prompt": f"{action.capitalize()} and generate resource configuration in JSON format that is compatible with AWS Cloud Control API only. The JSON should include the TypeName and Properties fields."
     }
-    response = requests.post(
-        f"{BASE_URL}/generate-template", json=data, headers=headers
-    )
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("Generating template..."),
+        TimeElapsedColumn(),
+        console=console,
+    ) as progress:
+        task = progress.add_task("waiting", total=None)
+        response = requests.post(
+            f"{BASE_URL}/generate-template", json=data, headers=headers
+        )
+        progress.update(task, advance=1)
+
     if response.status_code == 200:
         console.print("[bold green]Configuration generated successfully.[/bold green]")
         generated_template = response.json()["request_data"]
