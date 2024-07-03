@@ -63,9 +63,6 @@ def generate(action, profile, config_file):
         "aws-secret-key": credentials.secret_key,
         "aws-session-token": credentials.token if credentials.token else "",
     }
-
-    # Generate initial configuration from bedrock model
-    # Create an SNS topic resource configuration in JSON format that is compatible with AWS Cloud Control API. The JSON should include the TypeName and Properties fields.
     data = {
         "prompt": f"{action.capitalize()} and generate resource configuration in JSON format that is compatible with AWS Cloud Control API only. The JSON should include the TypeName and Properties fields."
     }
@@ -87,7 +84,7 @@ def generate(action, profile, config_file):
         generated_template = response.json()["request_data"]
         suggestions = response.json().get("suggestions", [])
         if suggestions:
-            console.print("[bold yellow]Suggestions:[/bold yellow]")
+            console.print("[bold yellow]GenAI suggestions:[/bold yellow]")
             for suggestion in suggestions:
                 console.print(f"  - {suggestion}")
 
@@ -111,9 +108,53 @@ def generate(action, profile, config_file):
         )
 
 
+@cli.command()
+@click.argument("config_file", type=click.Path(exists=True))
+@click.option("--monitor", is_flag=True, help="Monitor the resource creation status")
+@click.option("--profile", default=None, help="AWS CLI profile to use")
+def apply(config_file, monitor, profile):
+    """Apply the resource configuration to AWS based on the given config file"""
+
+    session = boto3.Session(profile_name=profile) if profile else boto3.Session()
+    credentials = session.get_credentials()
+    headers = {
+        "aws-access-key": credentials.access_key,
+        "aws-secret-key": credentials.secret_key,
+        "aws-session-token": credentials.token if credentials.token else "",
+    }
+    with open(config_file, "r") as f:
+        generated_template = json.load(f)
+
+    console.print(
+        "[bold yellow]Do you want to proceed with applying the configuration?[/bold yellow]"
+    )
+    confirm = click.confirm("Please confirm")
+    if confirm:
+        response = requests.post(
+            f"{BASE_URL}/message", json=generated_template, headers=headers
+        )
+        if response.status_code == 200:
+            console.print("[bold green]Request submitted successfully.[/bold green]")
+            formatted_response = json.dumps(response.json(), indent=4)
+            console.print_json(formatted_response)
+            if monitor:
+                request_token = response.json()["details"]["ProgressEvent"][
+                    "RequestToken"
+                ]
+                console.print(
+                    f"Monitoring status for request token: [bold]{request_token}[/bold]"
+                )
+                monitor_status(request_token, headers)
+        else:
+            console.print(
+                f"[bold red]Error: {response.status_code} - {response.json().get('detail')}[/bold red]"
+            )
+    else:
+        console.print("[bold red]Request cancelled.[/bold red]")
+        return
+
+
 # Refactor this code..
-
-
 @cli.command()
 @click.argument("action", required=False)
 @click.option("--interactive", is_flag=True, help="Enter configuration interactively")
@@ -220,9 +261,14 @@ def monitor_status(request_token, headers):
             status = details.get("ProgressEvent", {}).get("OperationStatus")
             if status in ["SUCCESS", "FAILED"]:
                 console.print(f"Operation Status: [bold]{status}[/bold]")
-                # formatted_details = json.dumps(details, indent=4)
-                # console.print_json(formatted_details)
                 display_resource_details(details)
+                if status == "FAILED":
+                    status_message = details.get("ProgressEvent", {}).get(
+                        "StatusMessage"
+                    )
+                    console.print(
+                        f"[bold red]Failure Reason: {status_message}[/bold red]"
+                    )
                 break
             else:
                 console.print(
