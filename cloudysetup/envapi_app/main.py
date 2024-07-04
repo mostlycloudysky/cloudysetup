@@ -1,6 +1,11 @@
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
-from .cloudcontrol_client import create_resource, get_resource_request_status
+from .cloudcontrol_client import (
+    create_resource,
+    get_resource_request_status,
+    invoke_bedrock_model,
+    ai_suggestions,
+)
 from .utils import extract_aws_credentials
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -51,21 +56,20 @@ def read_root(request: Request):
 @app.post("/generate-template", response_model=TemplateResponse)
 async def generate_template(template: TemplateRequest, request: Request):
 
-    print("A new request came in my way....")
     try:
-        # Mocking the template generation
-        generated_template = {
-            "TypeName": "AWS::SNS::Topic",
-            "Properties": {
-                "TopicName": "MySampleTopic",
-                "DisplayName": "My Sample SNS Topic",
-            },
-        }
+        # Invoke bedrock model
+        bedrock_response = invoke_bedrock_model(template.prompt)
+
+        # Invoke suggestions model to provide suggestions
+        suggestions_response = ai_suggestions(
+            f"Create a suggested changes for each objects such as unique name and more descriptive etc. without suggesting values  and expand  for this AWS cloud control API request body and generate the suggestions in a array of strings. {bedrock_response}"
+        )
+        print("Suggested response:", suggestions_response)
         suggestions = [
             "Change the TopicName to a unique value",
             "Set DisplayName to something more descriptive",
         ]
-        return {"request_data": generated_template, "suggestions": suggestions}
+        return {"request_data": bedrock_response, "suggestions": suggestions_response}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -80,6 +84,9 @@ def get_message(msgrequest: MessageRequest, request: Request):
 
     resource_type = msgrequest.TypeName
     configuration = msgrequest.Properties
+
+    print(f"Resource Type: {resource_type}")
+    print(f"Configuration: {configuration}")
 
     try:
         response = create_resource(
