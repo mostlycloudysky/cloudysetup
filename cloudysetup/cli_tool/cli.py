@@ -92,7 +92,7 @@ def generate(action, profile, config_file):
             os.makedirs(RESOURCES_DIR)
 
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        description = action.replace(" ", "_").lower()
+        description = action[:25].replace(" ", "_").lower()
 
         unique_filename = os.path.join(RESOURCES_DIR, f"{description}_{timestamp}.json")
         with open(unique_filename, "w") as f:
