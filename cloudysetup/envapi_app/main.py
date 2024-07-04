@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from .cloudcontrol_client import (
     create_resource,
+    delete_resource,
     get_resource_request_status,
     invoke_bedrock_model,
     ai_suggestions,
@@ -47,6 +48,11 @@ class TemplateResponse(BaseModel):
     suggestions: list = []
 
 
+class ResourceRequest(BaseModel):
+    TypeName: str
+    Properties: dict
+
+
 @app.get("/")
 @limiter.limit("3/minute")
 def read_root(request: Request):
@@ -70,6 +76,48 @@ async def generate_template(template: TemplateRequest, request: Request):
             "Set DisplayName to something more descriptive",
         ]
         return {"request_data": bedrock_response, "suggestions": suggestions_response}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/create-resource")
+@limiter.limit("3/minute")
+def create_resource_endpoint(resource_request: ResourceRequest, request: Request):
+    aws_access_key, aws_secret_key, aws_session_token = extract_aws_credentials(request)
+
+    resource_type = resource_request.TypeName
+    configuration = resource_request.Properties
+
+    try:
+        response = create_resource(
+            resource_type,
+            configuration,
+            aws_access_key,
+            aws_secret_key,
+            aws_session_token,
+        )
+        return {"status": "success", "details": response}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/delete-resource")
+@limiter.limit("3/minute")
+def delete_resource_endpoint(resource_request: ResourceRequest, request: Request):
+    aws_access_key, aws_secret_key, aws_session_token = extract_aws_credentials(request)
+
+    resource_type = resource_request.TypeName
+    configuration = resource_request.Properties
+
+    try:
+        response = delete_resource(
+            resource_type,
+            configuration,
+            aws_access_key,
+            aws_secret_key,
+            aws_session_token,
+        )
+        return {"status": "success", "details": response}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

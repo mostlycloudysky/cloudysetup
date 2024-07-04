@@ -125,14 +125,45 @@ def apply(config_file, monitor, profile):
     with open(config_file, "r") as f:
         generated_template = json.load(f)
 
+    operation = generated_template.get("Metadata", {}).get("operation", "").lower()
+
+    # Delete the Metadata field before sending the request
+    if "Metadata" in generated_template:
+        del generated_template["Metadata"]
+
+    operations = {
+        "create": "create-resource",
+        "read": "read-resource",
+        "update": "update-resource",
+        "delete": "delete-resource",
+        "list": "list-resource",
+    }
+
+    if operation not in operations:
+        console.print(
+            f"[bold red]Error: Invalid operation type. Supported operations: {', '.join(operations.keys())}[/bold red]"
+        )
+        return
+
+    operation_endpoint = operations[operation]
     console.print(
-        "[bold yellow]Do you want to proceed with applying the configuration?[/bold yellow]"
+        f"[bold yellow]Do you want to proceed with applying the configuration with {operation} operation...?[/bold yellow]"
     )
     confirm = click.confirm("Please confirm")
     if confirm:
-        response = requests.post(
-            f"{BASE_URL}/message", json=generated_template, headers=headers
-        )
+        with Progress(
+            SpinnerColumn(),
+            TextColumn(f"{operation.capitalize()} operation in progress..."),
+            TimeElapsedColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task("waiting", total=None)
+            response = requests.post(
+                f"{BASE_URL}/{operation_endpoint}",
+                json=generated_template,
+                headers=headers,
+            )
+            progress.update(task, advance=1)
         if response.status_code == 200:
             console.print("[bold green]Request submitted successfully.[/bold green]")
             formatted_response = json.dumps(response.json(), indent=4)
