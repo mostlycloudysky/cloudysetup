@@ -73,16 +73,19 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+cloudysetup/myenv
+
 # PyBuilder
 target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-resources/
+resources
 
 # IPython
 profile_default/
 ipython_config.py
+resources
 
 # pyenv
 .python-version

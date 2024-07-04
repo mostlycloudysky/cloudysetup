@@ -35,6 +35,71 @@ def create_resource(
     return response
 
 
+def delete_resource(
+    type_name: str,
+    identifier: str,
+    aws_access_key: str,
+    aws_secret_key: str,
+    aws_session_token: str = None,
+):
+
+    if aws_session_token:
+        cloudcontrol_client = boto3.client(
+            "cloudcontrol",
+            region_name="us-east-1",
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key,
+            aws_session_token=aws_session_token,
+        )
+    else:
+        cloudcontrol_client = boto3.client(
+            "cloudcontrol",
+            region_name="us-east-1",
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key,
+        )
+
+    response = cloudcontrol_client.delete_resource(
+        TypeName=type_name, Identifier=identifier
+    )
+
+    return response
+
+
+def update_resource(
+    type_name: str,
+    identifier: str,
+    patch_document: str,
+    aws_access_key: str,
+    aws_secret_key: str,
+    aws_session_token: str = None,
+):
+
+    if aws_session_token:
+        cloudcontrol_client = boto3.client(
+            "cloudcontrol",
+            region_name="us-east-1",
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key,
+            aws_session_token=aws_session_token,
+        )
+    else:
+        cloudcontrol_client = boto3.client(
+            "cloudcontrol",
+            region_name="us-east-1",
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key,
+        )
+
+    response = cloudcontrol_client.update_resource(
+        TypeName=type_name,
+        Identifier=identifier,
+        PatchDocument=patch_document,
+    )
+
+    return response
+
+
 def get_resource_request_status(
     request_token: str, aws_access_key: str, aws_secret_key: str, aws_session_token: str
 ):

@@ -64,7 +64,19 @@ def generate(action, profile, config_file):
         "aws-session-token": credentials.token if credentials.token else "",
     }
     data = {
-        "prompt": f"{action.capitalize()} and generate resource configuration in JSON format that is compatible with AWS Cloud Control API only. The JSON should include the TypeName and Properties fields."
+        "prompt": f"""
+            Generate a JSON configuration for AWS Cloud Control API for the operation '{action}'.
+            
+            - If the operation is 'create', the JSON should include the 'TypeName' and 'Properties' fields.
+            - If the operation is 'read', the JSON should include the 'TypeName' and 'Identifier' fields.
+            - If the operation is 'update', the JSON should include the 'TypeName', 'Identifier', and a 'PatchDocument' field, which should be a list (array) of JSON Patch to apply.
+            - If the operation is 'delete', the JSON should include the 'TypeName' and 'Identifier' fields.
+            - If the operation is 'list', the JSON should include the 'TypeName' field only.
+            
+            Additionally, include a 'Metadata' field at the end of the JSON object that specifies the operation type (e.g., create, read, update, list, delete).
+            
+            After generating the JSON, provide a list of suggestions indicating which placeholder values in the generated fields should be replaced with real values.
+        """
     }
 
     with Progress(
@@ -92,7 +104,7 @@ def generate(action, profile, config_file):
             os.makedirs(RESOURCES_DIR)
 
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        description = action.replace(" ", "_").lower()
+        description = action[:25].replace(" ", "_").lower()
 
         unique_filename = os.path.join(RESOURCES_DIR, f"{description}_{timestamp}.json")
         with open(unique_filename, "w") as f:
@@ -125,14 +137,51 @@ def apply(config_file, monitor, profile):
     with open(config_file, "r") as f:
         generated_template = json.load(f)
 
+    operation = generated_template.get("Metadata", {}).get("Operation", "").lower()
+
+    # Delete the Metadata field before sending the request
+    if "Metadata" in generated_template:
+        del generated_template["Metadata"]
+
+    operations = {
+        "create": "create-resource",
+        "read": "read-resource",
+        "update": "update-resource",
+        "delete": "delete-resource",
+        "list": "list-resource",
+    }
+
+    if operation not in operations:
+        console.print(
+            f"[bold red]Error: Invalid operation type. Supported operations: {', '.join(operations.keys())}[/bold red]"
+        )
+        return
+
+    operation_endpoint = operations[operation]
+    # Convert PatchDocument list to JSON string for update operation
+    if operation == "update":
+        if "PatchDocument" in generated_template:
+            generated_template["PatchDocument"] = json.dumps(
+                generated_template["PatchDocument"]
+            )
     console.print(
-        "[bold yellow]Do you want to proceed with applying the configuration?[/bold yellow]"
+        f"[bold yellow]Do you want to proceed with applying the configuration with {operation} operation...?[/bold yellow]"
     )
     confirm = click.confirm("Please confirm")
     if confirm:
-        response = requests.post(
-            f"{BASE_URL}/message", json=generated_template, headers=headers
-        )
+        with Progress(
+            SpinnerColumn(),
+            TextColumn(f"{operation.capitalize()} operation in progress..."),
+            TimeElapsedColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task("waiting", total=None)
+            response = requests.post(
+                f"{BASE_URL}/{operation_endpoint}",
+                json=generated_template,
+                headers=headers,
+            )
+            progress.update(task, advance=1)
         if response.status_code == 200:
             console.print("[bold green]Request submitted successfully.[/bold green]")
             formatted_response = json.dumps(response.json(), indent=4)
@@ -144,7 +193,7 @@ def apply(config_file, monitor, profile):
                 console.print(
                     f"Monitoring status for request token: [bold]{request_token}[/bold]"
                 )
-                monitor_status(request_token, headers)
+                monitor_status(request_token, headers, operation)
         else:
             console.print(
                 f"[bold red]Error: {response.status_code} - {response.json().get('detail')}[/bold red]"
@@ -242,7 +291,7 @@ def resource(action, monitor, profile, interactive, config_file):
         return
 
 
-def monitor_status(request_token, headers):
+def monitor_status(request_token, headers, operation):
     """Monitor the status of the resource creation"""
     console.print("[bold blue]Checking resource creation status...[/bold blue]")
     max_attempts = 10
@@ -261,7 +310,7 @@ def monitor_status(request_token, headers):
             status = details.get("ProgressEvent", {}).get("OperationStatus")
             if status in ["SUCCESS", "FAILED"]:
                 console.print(f"Operation Status: [bold]{status}[/bold]")
-                display_resource_details(details)
+                display_resource_details(details, operation)
                 if status == "FAILED":
                     status_message = details.get("ProgressEvent", {}).get(
                         "StatusMessage"
@@ -289,19 +338,20 @@ def monitor_status(request_token, headers):
         )
 
 
-def display_resource_details(details):
+def display_resource_details(details, operation):
 
     table = Table(title="Resource Details")
     table.add_column("Resource ID", justify="left", style="cyan", no_wrap=True)
     table.add_column("Resource Type", style="magenta")
     table.add_column("Status", style="green")
+    table.add_column("Operation", style="blue")
 
     progress_event = details.get("ProgressEvent", {})
     resource_id = progress_event.get("Identifier", "N/A")
     resource_type = progress_event.get("TypeName", "N/A")
     status = progress_event.get("OperationStatus", "N/A")
 
-    table.add_row(resource_id, resource_type, status)
+    table.add_row(resource_id, resource_type, status, operation)
     console.print(table)
 
 
