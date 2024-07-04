@@ -69,6 +69,7 @@ cloudysetup-cli apply /path/to/generated_config.json --monitor
 
 ### Project Structure
 
+```md
 cloudysetup/
 ├── .github/
 │   └── workflows/
@@ -84,3 +85,4 @@ cloudysetup/
 ├── requirements.txt
 ├── README.md
 └── .env
+```
