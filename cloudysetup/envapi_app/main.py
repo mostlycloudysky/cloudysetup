@@ -53,6 +53,11 @@ class ResourceRequest(BaseModel):
     Properties: dict
 
 
+class DeleteResourceRequest(BaseModel):
+    TypeName: str
+    Identifier: str
+
+
 @app.get("/")
 @limiter.limit("3/minute")
 def read_root(request: Request):
@@ -103,16 +108,16 @@ def create_resource_endpoint(resource_request: ResourceRequest, request: Request
 
 @app.post("/delete-resource")
 @limiter.limit("3/minute")
-def delete_resource_endpoint(resource_request: ResourceRequest, request: Request):
+def delete_resource_endpoint(resource_request: DeleteResourceRequest, request: Request):
     aws_access_key, aws_secret_key, aws_session_token = extract_aws_credentials(request)
 
     resource_type = resource_request.TypeName
-    configuration = resource_request.Properties
+    identifier = resource_request.Identifier
 
     try:
         response = delete_resource(
             resource_type,
-            configuration,
+            identifier,
             aws_access_key,
             aws_secret_key,
             aws_session_token,

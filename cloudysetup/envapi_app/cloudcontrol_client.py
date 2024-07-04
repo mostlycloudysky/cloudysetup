@@ -37,7 +37,7 @@ def create_resource(
 
 def delete_resource(
     type_name: str,
-    desired_state: str,
+    identifier: str,
     aws_access_key: str,
     aws_secret_key: str,
     aws_session_token: str = None,
@@ -60,7 +60,7 @@ def delete_resource(
         )
 
     response = cloudcontrol_client.delete_resource(
-        TypeName=type_name, DesiredState=json.dumps(desired_state)
+        TypeName=type_name, Identifier=identifier
     )
 
     return response
