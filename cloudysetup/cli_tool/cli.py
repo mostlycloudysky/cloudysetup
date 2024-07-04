@@ -64,7 +64,7 @@ def generate(action, profile, config_file):
         "aws-session-token": credentials.token if credentials.token else "",
     }
     data = {
-        "prompt": f"{action.capitalize()} and generate resource configuration in JSON format that is compatible with AWS Cloud Control API only. The JSON should include the TypeName and Properties fields."
+        "prompt": f"{action.capitalize()} and generate resource configuration in JSON format that is compatible with AWS Cloud Control API only. The JSON should include the TypeName and Properties fields and a Metadata named operation field that specifies the operation type (e.g., create, read, update, list, delete) is added at the end of JSON object. After generating the JSON, provide a list of suggestions indicating which placeholder values in the generated Properties fields should be replaced with real values."
     }
 
     with Progress(
