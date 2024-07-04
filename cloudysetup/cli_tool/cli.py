@@ -69,7 +69,7 @@ def generate(action, profile, config_file):
             
             - If the operation is 'create', the JSON should include the 'TypeName' and 'Properties' fields.
             - If the operation is 'read', the JSON should include the 'TypeName' and 'Identifier' fields.
-            - If the operation is 'update', the JSON should include the 'TypeName', 'Identifier', and 'Properties' fields.
+            - If the operation is 'update', the JSON should include the 'TypeName', 'Identifier', and a 'PatchDocument' field, which should be a list (array) of JSON Patch to apply.
             - If the operation is 'delete', the JSON should include the 'TypeName' and 'Identifier' fields.
             - If the operation is 'list', the JSON should include the 'TypeName' field only.
             
@@ -158,6 +158,12 @@ def apply(config_file, monitor, profile):
         return
 
     operation_endpoint = operations[operation]
+    # Convert PatchDocument list to JSON string for update operation
+    if operation == "update":
+        if "PatchDocument" in generated_template:
+            generated_template["PatchDocument"] = json.dumps(
+                generated_template["PatchDocument"]
+            )
     console.print(
         f"[bold yellow]Do you want to proceed with applying the configuration with {operation} operation...?[/bold yellow]"
     )

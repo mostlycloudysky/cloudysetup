@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from .cloudcontrol_client import (
     create_resource,
     delete_resource,
+    update_resource,
     get_resource_request_status,
     invoke_bedrock_model,
     ai_suggestions,
@@ -56,6 +57,12 @@ class ResourceRequest(BaseModel):
 class DeleteResourceRequest(BaseModel):
     TypeName: str
     Identifier: str
+
+
+class UpdateResourceRequest(BaseModel):
+    TypeName: str
+    Identifier: str
+    PatchDocument: str
 
 
 @app.get("/")
@@ -118,6 +125,29 @@ def delete_resource_endpoint(resource_request: DeleteResourceRequest, request: R
         response = delete_resource(
             resource_type,
             identifier,
+            aws_access_key,
+            aws_secret_key,
+            aws_session_token,
+        )
+        return {"status": "success", "details": response}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/update-resource")
+@limiter.limit("3/minute")
+def update_resource_endpoint(resource_request: UpdateResourceRequest, request: Request):
+    aws_access_key, aws_secret_key, aws_session_token = extract_aws_credentials(request)
+
+    resource_type = resource_request.TypeName
+    patch_document = resource_request.PatchDocument
+    identifier = resource_request.Identifier
+
+    try:
+        response = update_resource(
+            resource_type,
+            identifier,
+            patch_document,
             aws_access_key,
             aws_secret_key,
             aws_session_token,
