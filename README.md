@@ -1,16 +1,21 @@
-# CloudySetup
+# CLOUDYSETUP CLI
+
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)
+![Issues](https://img.shields.io/github/issues/mostlycloudysky/cloudysetup)
 
 CloudySetup is a CLI tool designed to streamline AWS resource management using AWS Cloud Control API. It leverages `Amazon Bedrock` fully managed service with `Anthropic - Claude V2` Gen AI model to create, read, update, list, and delete AWS resources by generating configurations compatible with AWS Cloud Control API.
 
-**Note: This project is experimental and intended for development only. It should not be used in production environments.**
+![demo](cloudysetup.gif)
+
 
 ## Features
 
-- Generate AWS resource configurations using generative AI and provides AI generated suggestions to improve the resource configuration. 
-- Apply generated configurations to create, read, update, list, and delete resources and intent on each resources is determined through Generative AI. 
-- Monitor resource creation status.
+- Generate `AWS resource configurations` using `generative AI` and provides `AI generated suggestions` to improve the resource configuration. 
+- Apply generated configurations to `create`, `read`, `update`, `list`, and `delete` resources and intent on each resources is determined through Generative AI. 
+- `Monitor resource` creation status.
 - Display suggestions for configuration improvements.
-- Store configurations and state information locally.
+- Store `configurations and state` information locally.
 
 ## Installation
 
@@ -63,6 +68,10 @@ You could also use the managed FastAPI Service deployed in ECS fronted by Route5
    curl $BASE_URL/docs
    ```
 
+>Alternatively, you could manage your own backend service by deploying the Fast API as per your need. Here is the source for to deploy to ECS Fargate using [Terraform](https://github.com/mostlycloudysky/cloudysetup/tree/master/iac).
+
+
+
 ### Running the CLI locally
 1. **Install dependancies and `cloudysetup-cli` from the root of the project**
    ```sh
@@ -82,6 +91,8 @@ You could also use the managed FastAPI Service deployed in ECS fronted by Route5
    cloudysetup-cli --help
    ```
    
+**Note: This project is experimental and intended for development only. It should not be used in production environments.**
+
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/mostlycloudysky/cloudysetup/issues).
 
