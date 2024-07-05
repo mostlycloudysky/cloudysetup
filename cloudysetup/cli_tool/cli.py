@@ -81,7 +81,7 @@ def generate(action, profile, config_file):
 
     with Progress(
         SpinnerColumn(),
-        TextColumn("Generating template..."),
+        TextColumn("Generating template with Anthropic - Claude V2 model..."),
         TimeElapsedColumn(),
         console=console,
     ) as progress:
@@ -96,7 +96,9 @@ def generate(action, profile, config_file):
         generated_template = response.json()["request_data"]
         suggestions = response.json().get("suggestions", [])
         if suggestions:
-            console.print("[bold yellow]GenAI suggestions:[/bold yellow]")
+            console.print(
+                "[bold blue]Anthropic Claude model [bold cyan]suggestions:[/bold cyan][/bold blue]"
+            )
             for suggestion in suggestions:
                 console.print(f"  - {suggestion}")
 

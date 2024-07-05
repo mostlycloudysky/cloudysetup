@@ -1,0 +1,32 @@
+name: Create ECS cluster with Terraform to host FastAPI backend service
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: List out directory
+        run: ls
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          terraform_wrapper: false
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform Apply
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+          TF_VAR_custom_domain_name: ${{ secrets.CUSTOM_DOMAIN_NAME }}
+          TF_VAR_hosted_zone_id: ${{ secrets.HOSTED_ZONE_ID }}
+        run: terraform apply -auto-approve

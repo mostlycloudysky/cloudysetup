@@ -70,7 +70,7 @@ You could also use the managed FastAPI Service deployed in ECS fronted by Route5
    ```
 2. **To generate a resource configuration, use the `generate` command**
    ```sh
-   cloudysetup-cli generate "create sns topic resource"
+   cloudysetup-cli generate "Create an SNS topic with topic name as cloudysky with an email subscription to  cloudysky@gmail.com address"
    ```
 
 3. **To apply a generated configuration, use the `apply` command**
@@ -85,5 +85,3 @@ You could also use the managed FastAPI Service deployed in ECS fronted by Route5
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/mostlycloudysky/cloudysetup/issues).
 
-### License
-This project is licensed under the MIT License. See the LICENSE file for details.
