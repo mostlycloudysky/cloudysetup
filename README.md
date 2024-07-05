@@ -12,7 +12,7 @@ CloudySetup is a CLI tool designed to streamline AWS resource management using A
 ## Features
 
 - Generate `AWS resource configurations` using `generative AI` and provides `AI generated suggestions` to improve the resource configuration. 
-- Apply generated configurations to `create`, `read`, `update`, `list`, and `delete` resources and intent on each resources is determined through Generative AI. 
+- Apply generated configurations to `create`, `update`, and `delete` resources and intent on each resources is determined through Generative AI. 
 - `Monitor resource` creation status.
 - Display suggestions for configuration improvements.
 - Store `configurations and state` information locally.
