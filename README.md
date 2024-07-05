@@ -77,7 +77,7 @@ You could also use the managed FastAPI Service deployed in ECS fronted by Route5
    ```sh
    cloudysetup-cli apply /path/to/generated_config.json --monitor
    ```
-4. **`cloudysetup-cli` has following commands and can be found using the following `--help` command**
+4. **`cloudysetup-cli` has following commands and can be found using the `--help` command**
    ```sh
    cloudysetup-cli --help
    ```
