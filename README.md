@@ -2,7 +2,7 @@
 
 CloudySetup is a CLI tool designed to streamline AWS resource management using AWS Cloud Control API. It leverages `Amazon Bedrock` fully managed service with `Anthropic - Claude V2` Gen AI model to create, read, update, list, and delete AWS resources by generating configurations compatible with AWS Cloud Control API.
 
-<img src="Cloudysetupcli.gif" alt="Demo" width="600">
+<img src="Cloudysetup-cli.gif" alt="Demo" width="600">
 
 
 ## Features
