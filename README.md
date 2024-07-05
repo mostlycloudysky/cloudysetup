@@ -1,4 +1,5 @@
-# CloudySetup
+# CLOUDYSETUP CLI
+
 
 CloudySetup is a CLI tool designed to streamline AWS resource management using AWS Cloud Control API. It leverages `Amazon Bedrock` fully managed service with `Anthropic - Claude V2` Gen AI model to create, read, update, list, and delete AWS resources by generating configurations compatible with AWS Cloud Control API.
 
@@ -7,11 +8,11 @@ CloudySetup is a CLI tool designed to streamline AWS resource management using A
 
 ## Features
 
-- Generate AWS resource configurations using generative AI and provides AI generated suggestions to improve the resource configuration. 
-- Apply generated configurations to create, read, update, list, and delete resources and intent on each resources is determined through Generative AI. 
-- Monitor resource creation status.
+- Generate `AWS resource configurations` using `generative AI` and provides `AI generated suggestions` to improve the resource configuration. 
+- Apply generated configurations to `create`, `read`, `update`, `list`, and `delete` resources and intent on each resources is determined through Generative AI. 
+- `Monitor resource` creation status.
 - Display suggestions for configuration improvements.
-- Store configurations and state information locally.
+- Store `configurations and state` information locally.
 
 ## Installation
 
@@ -63,6 +64,10 @@ You could also use the managed FastAPI Service deployed in ECS fronted by Route5
    ```sh
    curl $BASE_URL/docs
    ```
+
+>Alternatively, you could manage your own backend service by deploying the Fast API as per your need. Here is the source for to deploy to ECS Fargate using [Terraform](https://github.com/mostlycloudysky/cloudysetup/tree/master/iac).
+
+
 
 ### Running the CLI locally
 1. **Install dependancies and `cloudysetup-cli` from the root of the project**
