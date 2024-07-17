@@ -94,7 +94,8 @@ You could also use the managed FastAPI Service deployed in ECS fronted by Route5
    cloudysetup-cli --help
    ```
    
-**Note: This project is experimental and intended for development only. It should not be used in production environments.**
+**Note**: 
+This project is intended for development environment usage only. It should not be used in production environments.
 
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/mostlycloudysky/cloudysetup/issues).
