@@ -1,4 +1,4 @@
-name: Check FastAPI Service
+name: Service Availability
 
 on:
   schedule:
