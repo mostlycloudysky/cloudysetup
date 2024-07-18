@@ -1,0 +1,15 @@
+name: Check FastAPI Service
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every 24 hours
+  workflow_dispatch:
+
+jobs:
+  check_service:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if FastAPI service is up
+        run: |
+          curl -f https://cloudysetup.cloudysky.link/docs || exit 1
