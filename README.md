@@ -70,6 +70,9 @@ You could also use the managed FastAPI Service deployed in ECS fronted by Route5
    ```sh
    curl $BASE_URL/docs
    ```
+### Supported API Operations
+![apioperation](supported-api-operations.png)
+Also, please find the [API Specification](https://cloudysetup.cloudysky.link/docs) for the managed `Fast API Service`
 
 >Alternatively, you could manage your own backend service by deploying the Fast API as per your need. Here is the source for to deploy to ECS Fargate using [Terraform](https://github.com/mostlycloudysky/cloudysetup/tree/master/iac).
 
