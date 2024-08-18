@@ -15,7 +15,7 @@ CloudySetup is a CLI tool designed to streamline AWS resource management using A
 ![demo](cloudysetup.gif)
 
 ## Architecture
-![architecture](cloudysetup-cli.png)
+![architecture](cloudysetupcli.png)
 
 
 ## Features
